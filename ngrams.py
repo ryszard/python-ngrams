@@ -54,9 +54,8 @@ class Ngrams(object):
     class uses words as tokens. See module docs.
     """
     class WrongN(Exception):
-        """
-
-        """
+        """Error to raise when two ngrams of different n's are being
+        compared."""
         pass
 
     def __init__(self, text, n=3):
