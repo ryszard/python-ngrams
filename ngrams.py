@@ -35,20 +35,27 @@ and CharNgrams, which treats single characters as tokens:
 If none of these fits your definition of `token' all you have to do is
 subclass Ngrams and define you own tokenize method.
 
+When creating an Ngrams object you can provide a second argument as
+the value of n (the default being 3). You can compare only n-grams
+with the same value of n.
+
+    >>> Ngrams('ala ma kota', 3) * Ngrams('ala ma kota', 2)
+    Traceback (most recent call last):
+      ...
+    WrongN
+
 """
 import re
 import math
 
 class Ngrams(object):
     """
-
+    Compare strings using an n-grams model and cosine similarity. This
+    class uses words as tokens. See module docs.
     """
     class WrongN(Exception):
         """
-        >>> Ngrams('ala ma kota', 3) * Ngrams('ala ma kota', 2)
-        Traceback (most recent call last):
-          ...
-        WrongN
+
         """
         pass
 
@@ -114,6 +121,8 @@ class Ngrams(object):
 class CharNgrams(Ngrams):
 
     """
+    Ngrams comparison using single characters as tokens.
+
     >>> CharNgrams("ala ma kota")*CharNgrams("ala ma kota")
     1.0
 
