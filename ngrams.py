@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 u"""
+# -*- coding: utf-8 -*-
 (c) 2009 Ryszard Szopa <ryszard.szopa@gmail.com>
 
 This work ‘as-is’ we provide.
@@ -14,23 +15,15 @@ Use as is fit,
 free or for profit.
 On this notice these rights rely.
 
-Compare strings using an n-gram model and cosine similarity. N-grams
-are tuples of length n consisting of subsequent tokens from a
-text. For example, if we treat words as tokens, then the few trigrams
-(3-grams) of the license will be: 'this work ‘as-is’', 'work ‘as-is’
-we', '‘as-is’ we provide', 'we provide no', 'provide no warranty'. You
-can also filter our some charachters that you consider irrelevant,
-eg. nonalphanumeric characters, consequent spaces. etc.
-
 This library provides two classes: Ngrams, which treats words as tokens
 
-    >>> Ngrams(u"This is a very small donkey.") * Ngrams(u"This animal is a very small donkey.")
-    0.77151674981045959
+    >>> Ngrams(u"This is a very small donkey.") * Ngrams(u"This animal is a very small donkey.") #doctest:+ELLIPSIS
+    0.771516749810...
 
 and CharNgrams, which treats single characters as tokens:
 
-    >>> CharNgrams('supercalifragilistic')*CharNgrams('supercalifragislislistic')
-    0.97302554513465578
+    >>> CharNgrams('supercalifragilistic')*CharNgrams('supercalifragislislistic') #doctest:+ELLIPSIS
+    0.973025545134...
 
 If none of these fits your definition of `token' all you have to do is
 subclass Ngrams and define you own tokenize method.
@@ -52,6 +45,9 @@ class Ngrams(object):
     """
     Compare strings using an n-grams model and cosine similarity. This
     class uses words as tokens. See module docs.
+
+
+    >>> print Ngrams('''Compare strings using an n-grams model and cosine similarity. This class uses words as tokens. See module docs.''').d
     """
     class WrongN(Exception):
         """Error to raise when two ngrams of different n's are being
@@ -91,12 +87,13 @@ class Ngrams(object):
 
     def tokenize(self, text):
         """
+        # -*- coding: utf-8 -*-
         Return an iterator of tokens of which the n-grams will
         consist. You can overwrite this method in subclasses.
 
-        >>> list(Ngrams('').tokenize(chr(10).join([u'This work \xe2as-is\xe2 we provide.',\
+        >>> list(Ngrams('').tokenize(chr(10).join([u"This work 'as-is' we provide.",\
         u'No warranty, express or implied.', \
-        u'We’ve done our best,', \
+        u"We've done our best,", \
         u'to debug and test.',\
         u'Liability for damages denied.'])))[:5]
         [u'this work asis', u'work asis we', u'asis we provide', u'we provide no', u'provide no warranty']
@@ -136,6 +133,16 @@ class CharNgrams(Ngrams):
         """
         return (c for c in st if c.isalnum())
 
+class CharNgramSpaces(CharNgrams):
+    '''Like CharNgrams, except it keeps whitespace as one space in
+    the process of tokenization. This should be useful for analyzing
+    texts longer than words, where places at which word boundaries
+    occur may be important.'''
+    def tokenize(self, st):
+        return super(CharNgramSpaces, self).tokenize(re.sub(r'\s+', ' ', st))
+
+
 if __name__=="__main__":
     import doctest
     doctest.testmod()
+
