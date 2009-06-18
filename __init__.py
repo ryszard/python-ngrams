@@ -23,7 +23,7 @@ This library provides two classes: Ngrams, which treats words as tokens
 and CharNgrams, which treats single characters as tokens:
 
     >>> CharNgrams('supercalifragilistic')*CharNgrams('supercalifragislislistic') #doctest:+ELLIPSIS
-    0.973025545134...
+    0.775...
 
 If none of these fits your definition of `token' all you have to do is
 subclass Ngrams and define you own tokenize method.
@@ -42,16 +42,20 @@ import re
 import math
 
 class Ngrams(object):
-    """
-    Compare strings using an n-grams model and cosine similarity. This
-    class uses words as tokens. See module docs.
+    """Compare strings using an n-grams model and cosine similarity.
+
+    This class uses words as tokens. See module docs.
 
 
-    >>> print Ngrams('''Compare strings using an n-grams model and cosine similarity. This class uses words as tokens. See module docs.''').d
+    >>> sorted(Ngrams('''Compare strings using an n-grams model and cosine similarity. This class uses words as tokens. See module docs.''').d.items())
+    [('an ngrams model', 0.23570226039551587), ('and cosine similarity', 0.23570226039551587), ('as tokens see', 0.23570226039551587), ('class uses words', 0.23570226039551587), ('compare strings using', 0.23570226039551587), ('cosine similarity this', 0.23570226039551587), ('docs', 0.23570226039551587), ('model and cosine', 0.23570226039551587), ('module docs', 0.23570226039551587), ('ngrams model and', 0.23570226039551587), ('see module docs', 0.23570226039551587), ('similarity this class', 0.23570226039551587), ('strings using an', 0.23570226039551587), ('this class uses', 0.23570226039551587), ('tokens see module', 0.23570226039551587), ('uses words as', 0.23570226039551587), ('using an ngrams', 0.23570226039551587), ('words as tokens', 0.23570226039551587)]
     """
+    ngram_joiner = " "
+
     class WrongN(Exception):
         """Error to raise when two ngrams of different n's are being
-        compared."""
+        compared.
+        """
         pass
 
     def __init__(self, text, n=3):
@@ -69,8 +73,7 @@ class Ngrams(object):
         return iter(self.d)
 
     def __mul__(self, other):
-        """
-        Returns the similarity between self and other as a float in
+        """Returns the similarity between self and other as a float in
         (0;1).
         """
         if self.n != other.n:
@@ -80,18 +83,27 @@ class Ngrams(object):
         return sum(self[k]*other[k] for k in self if k in other)
 
     def __repr__(self):
-        return "Ngrams(%s, %s)" % (repr(self.text), repr(self.n))
+        return "Ngrams(%r, %r)" % (self.text, self.n)
 
     def __str__(self):
         return self.text
 
     def tokenize(self, text):
+        """Return a sequence of tokens from which the ngrams should be constructed.
+
+        This shouldn't be a generator, because its length will be
+        needed.
+        """
+
+        return re.compile(u'[^\w\n ]|\xe2', re.UNICODE).sub('', text).lower().split()
+
+    def make_ngrams(self, text):
         """
         # -*- coding: utf-8 -*-
         Return an iterator of tokens of which the n-grams will
         consist. You can overwrite this method in subclasses.
 
-        >>> list(Ngrams('').tokenize(chr(10).join([u"This work 'as-is' we provide.",\
+        >>> list(Ngrams('').make_ngrams(chr(10).join([u"This work 'as-is' we provide.",\
         u'No warranty, express or implied.', \
         u"We've done our best,", \
         u'to debug and test.',\
@@ -99,13 +111,12 @@ class Ngrams(object):
         [u'this work asis', u'work asis we', u'asis we provide', u'we provide no', u'provide no warranty']
 
         """
-
-        words = re.compile(u'[^\w\n ]|\xe2', re.UNICODE).sub('', text).lower().split()
-        return (' '.join(words[i:i+self.n]) for i in range(len(words)))
+        tokens = self.tokenize(text)
+        return (self.ngram_joiner.join(tokens[i:i+self.n]) for i in range(len(tokens)))
 
     def text_to_ngrams(self, text, n=3):
         d = {}
-        for ngram in self.tokenize(text):
+        for ngram in self.make_ngrams(text):
             try: d[ngram] += 1
             except KeyError: d[ngram] = 1
 
@@ -116,8 +127,7 @@ class Ngrams(object):
 
 class CharNgrams(Ngrams):
 
-    """
-    Ngrams comparison using single characters as tokens.
+    """Ngrams comparison using single characters as tokens.
 
     >>> CharNgrams("ala ma kota")*CharNgrams("ala ma kota")
     1.0
@@ -126,12 +136,13 @@ class CharNgrams(Ngrams):
     True
 
     """
+    ngram_joiner = ''
     def tokenize(self, st):
         """
         >>> ''.join(CharNgrams('').tokenize('ala ma kota!'))
         'alamakota'
         """
-        return (c for c in st if c.isalnum())
+        return [c for c in st if c.isalnum()]
 
 class CharNgramSpaces(CharNgrams):
     '''Like CharNgrams, except it keeps whitespace as one space in
