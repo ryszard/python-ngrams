@@ -97,6 +97,10 @@ class Ngrams(object):
 
         return re.compile(u'[^\w\n ]|\xe2', re.UNICODE).sub('', text).lower().split()
 
+    def normalize(self, text):
+        """This method is run on the text right before tokenization"""
+        return text.lower()
+    
     def make_ngrams(self, text):
         """
         # -*- coding: utf-8 -*-
@@ -111,6 +115,7 @@ class Ngrams(object):
         [u'this work asis', u'work asis we', u'asis we provide', u'we provide no', u'provide no warranty']
 
         """
+        text = self.normalize(text)
         tokens = self.tokenize(text)
         return (self.ngram_joiner.join(tokens[i:i+self.n]) for i in range(len(tokens)))
 
@@ -130,6 +135,9 @@ class CharNgrams(Ngrams):
     """Ngrams comparison using single characters as tokens.
 
     >>> CharNgrams("ala ma kota")*CharNgrams("ala ma kota")
+    1.0
+
+    >>> round(CharNgrams("This Makes No Difference") * CharNgrams("this makes no difference"), 4)
     1.0
 
     >>> CharNgrams("Warszawska")*CharNgrams("Warszawa") > CharNgrams("Warszawa")*CharNgrams("Wawa")
