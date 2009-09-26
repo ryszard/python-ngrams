@@ -99,7 +99,11 @@ class Ngrams(object):
 
     def normalize(self, text):
         """This method is run on the text right before tokenization"""
-        return text.lower()
+        try:
+            return text.lower()
+        except AttributeError:
+            # text is not a string?
+            raise TypeError(text)
     
     def make_ngrams(self, text):
         """
